@@ -6,8 +6,8 @@
  
 # default parameters
  
-APP_HOME=/opt/smart-mq
-JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.9.x86_64/
+#APP_HOME=/opt/smart-mq
+JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.19.x86_64/
  
 JVM=server
 JAVA_MAIN_CLASS=com.smart.service.AnalyzerService
@@ -24,12 +24,13 @@ JSVC_DEBUG="-debug"
  
 ### set classpathes ###
 #APP_CP=$APP_HOME/classes:$APP_HOME/res
-for f in `ls $APP_HOME/lib`
-do
-    APP_CP=$APP_CP:$APP_HOME/lib/$f
-done
-APP_CP=$APP_CP:/opt/smart.jar
- 
+#for f in `ls $APP_HOME/lib`
+#do
+#    APP_CP=$APP_CP:$APP_HOME/lib/$f
+#done
+#APP_CP=$APP_CP:/opt/smart.jar
+APP_CP=/opt/smart.jar
+
 #JSVC_ARGS="-jvm $JVM -cp $APP_CP -home $JAVA_HOME -user $JAVA_USER "
 JSVC_ARGS="-jvm $JVM -cp $APP_CP -home $JAVA_HOME "
 JSVC_ARGS="$JSVC_ARGS -pidfile ${pidfile} -outfile $JAVA_STDOUT -errfile $JAVA_STDERR"
