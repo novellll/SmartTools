@@ -1,5 +1,7 @@
 package com.smart.apns;
 
+import java.io.InputStream;
+
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
 
@@ -51,8 +53,10 @@ public class ApnUtils {
 		String certFile = Configuration.conf.getString("apn_cert_file");
 		String certPass = Configuration.conf.getString("apn_cert_pass");
 		
+		InputStream is = getClass().getClassLoader().getResourceAsStream(certFile);
+		
 		ApnsService service = APNS.newService()
-			    .withCert(certFile, certPass)
+			    .withCert(is, certPass)
 			    .withSandboxDestination()
 			    .build();
 		
