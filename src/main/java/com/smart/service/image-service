@@ -1,6 +1,8 @@
 #!/bin/sh
 #
- 
+
+# chkconfig: - 80 30
+
 # Source function library.
 #. /etc/rc.d/init.d/functions
  
