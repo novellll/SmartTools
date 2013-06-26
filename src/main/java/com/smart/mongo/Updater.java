@@ -18,7 +18,24 @@ import com.smart.Configuration;
 
 public class Updater {
 
-	private static final Logger log = Logger.getLogger(Updater.class); 
+	private static final Logger log = Logger.getLogger(Updater.class);
+	
+	public void updateMsgThumb(String messageId ,String fileId,int height,int width,String collection) throws Exception{
+		DBOperator dbop = new DBOperator();
+		log.debug("connect to mongodb successfully.");
+		DBCollection messages = dbop.getDB().getCollection(collection);
+		BasicDBObject query = new BasicDBObject("_id", new ObjectId(messageId));
+		log.debug("query: " + query.toString());
+		BasicDBObject message = (BasicDBObject) messages.findOne(query);
+		BasicDBObject thumb = new BasicDBObject();
+		thumb.put("fileid", fileId);
+		thumb.put("height", height);
+		thumb.put("width", width);
+		message.put("thumb", thumb);
+		WriteResult res = messages.update(query, message);
+        log.debug("result: " + res.toString());
+        dbop.DBClose();
+	}
 	
 	public void updateKeywords(String id, String collection, String[] keywords) throws Exception {
 		
