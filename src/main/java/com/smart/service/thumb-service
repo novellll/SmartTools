@@ -1,0 +1,78 @@
+#!/bin/sh
+#
+
+# chkconfig: - 80 30
+
+# Source function library.
+#. /etc/rc.d/init.d/functions
+ 
+# default parameters
+ 
+#APP_HOME=/opt/smart-mq
+JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.19.x86_64/
+ 
+JVM=server
+JAVA_MAIN_CLASS=com.smart.service.ThumbService
+JAVA_STDOUT=/var/log/java_thumb_server.log
+JAVA_STDERR=/var/log/java_thumb_server.err
+ 
+prog=java_thumb_server
+pidfile=${PIDFILE-/var/run/java_thumb_server.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/java_thumb_server}
+JSVC=/usr/bin/jsvc
+RETVAL=0
+ 
+JSVC_DEBUG="-debug"
+ 
+### set classpathes ###
+#APP_CP=$APP_HOME/classes:$APP_HOME/res
+#for f in `ls $APP_HOME/lib`
+#do
+#    APP_CP=$APP_CP:$APP_HOME/lib/$f
+#done
+#APP_CP=$APP_CP:/opt/smart.jar
+APP_CP=/opt/smart.jar
+
+#JSVC_ARGS="-jvm $JVM -cp $APP_CP -home $JAVA_HOME -user $JAVA_USER "
+JSVC_ARGS="-jvm $JVM -cp $APP_CP -home $JAVA_HOME "
+JSVC_ARGS="$JSVC_ARGS -pidfile ${pidfile} -outfile $JAVA_STDOUT -errfile $JAVA_STDERR"
+JSVC_ARGS="$JSVC_ARGS $JSVC_DEBUG"
+ 
+start() {
+  echo -n $"Starting $prog: "
+  $JSVC $JSVC_ARGS $JAVA_MAIN_CLASS  
+  echo
+  [ $RETVAL = 0 ] && touch ${lockfile}
+  return $RETVAL
+}
+ 
+stop() {
+  echo -n $"Stopping $prog: "
+  $JSVC $JSVC_ARGS -stop $JAVA_MAIN_CLASS
+  RETVAL=$?
+  echo
+  [ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
+  echo
+}
+ 
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    status)
+        status -p ${pidfile} $prog
+        RETVAL=$?
+        ;;
+    *)
+        echo $"Usage: $prog {start|stop|status}"
+        RETVAL=3
+esac
+exit $RETVAL
+
