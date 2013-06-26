@@ -6,7 +6,6 @@ import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 
 import com.smart.Configuration;
-import com.smart.thumbnail.ImageScissors;
 import com.smart.thumbnail.ImageThumb;
 
 public class ThumbService implements Daemon {
