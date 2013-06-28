@@ -65,7 +65,7 @@
 		<dependency>
 			<groupId>com.notnoop.apns</groupId>
 			<artifactId>apns</artifactId>
-			<version>0.2.4-SNAPSHOT</version>
+			<version>0.2.3</version>
 		</dependency>
 		<dependency>
 			<groupId>net.arnx</groupId>
@@ -115,7 +115,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.5</version>
+			<version>1.5.6</version>
 		</dependency>
 	</dependencies>
 </project>
