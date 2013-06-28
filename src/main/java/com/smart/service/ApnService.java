@@ -6,7 +6,7 @@ import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 
 import com.smart.Configuration;
-import com.smart.apns.ApnUtils;
+import com.smart.analyzer.MqReceiver;
 
 public class ApnService implements Daemon {
 
@@ -24,7 +24,7 @@ public class ApnService implements Daemon {
 	@Override
 	public void start() throws Exception {
 		System.out.println("start");
-		ApnUtils.main(null);
+		MqReceiver.main(null);
 	}
 
 	@Override
