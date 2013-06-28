@@ -27,7 +27,7 @@ public class MqReceiver {
 	public static void main(String[] args) throws Exception {
 		
 		String mqHost = Configuration.conf.getString("rabbit_host");
-		String mqQueue = Configuration.conf.getString("rabbit_queue_analyzer");
+		String mqQueue = Configuration.conf.getString("rabbit_queue_apn");
 
 		log.debug("start");
 		
