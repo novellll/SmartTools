@@ -6,7 +6,7 @@ import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 
 import com.smart.Configuration;
-import com.smart.analyzer.MqReceiver;
+import com.smart.apns.MqReceiver;
 
 public class ApnService implements Daemon {
 
