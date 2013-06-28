@@ -24,7 +24,7 @@ public class ApnUtils {
 		ApnUtils self = new ApnUtils();
 		
 		ApnsService service = self.createService();
-		self.push(service, "", "日本語をプッシュする");
+		self.push(service, "51bed7edfd6c92d339000031", "日本語をプッシュする");
 	}
 	
 	/**
@@ -57,7 +57,8 @@ public class ApnUtils {
 		
 		ApnsService service = APNS.newService()
 			    .withCert(is, certPass)
-			    .withSandboxDestination()
+			    //.withSandboxDestination()
+			    .withProductionDestination()
 			    .build();
 		
 		return service;
