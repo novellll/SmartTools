@@ -218,29 +218,14 @@ public class Updater {
 	private void setNestDBObject(BasicDBObject row, String key, String data) {
 		
 		String[] keys = key.split("\\.");
-		
-		if (keys.length > 1) {
 
-			BasicDBObject dbobject = null;
-			for (int i = keys.length - 1; i >= 1; i--) {
-				if (i == keys.length - 1) {
-					dbobject = new BasicDBObject();
-					dbobject.put(keys[i], data);
-				} else {
-					BasicDBObject newdbobject = new BasicDBObject();
-					newdbobject.put(keys[i], dbobject);
-					dbobject = newdbobject;
-				}
-			}
-			
-			row.put(keys[0], dbobject);
-		} else {
-			row.put(keys[0], data);
-		}
+		BasicDBObject layout = (BasicDBObject)row.get(keys[0]);
+		BasicDBObject image = (BasicDBObject)layout.get(keys[1]);
+		image.put(keys[2], data);
 	}
 	
 	public static void main(String[] args) throws Exception {
 		Configuration.conf = new PropertiesConfiguration("server.properties");
-		new Updater().addImage("5211deecf4d1e1b43f000008", "/Users/lilin/Desktop/1.jpg", "users", "photo3.a.b");
+		new Updater().addImage("5211deecf4d1e1b43f000008", "/Users/lilin/Desktop/logo.jpg", "users", "photo3.a.f");
 	}
 }

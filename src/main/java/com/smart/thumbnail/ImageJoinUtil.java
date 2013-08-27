@@ -28,7 +28,7 @@ public class ImageJoinUtil {
 		
 		// mq info
 		String mqHost = Configuration.conf.getString("rabbit_host");
-		String mqQueue = Configuration.conf.getString("rabbit_queue_scissors");
+		String mqQueue = Configuration.conf.getString("rabbit_queue_join");
 
 		// get channel
 		ConnectionFactory factory = new ConnectionFactory();
