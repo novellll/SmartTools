@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
 
@@ -142,15 +143,15 @@ public class Updater {
 		
 		//save big photo to mongo
 		String bigPhotoId = dbop.savePhoto(bigFile);
-		log.debug("save bigFile successfully.");
+		log.debug("save bigFile successfully." + bigPhotoId);
 		
 		//save middle photo to mongo
 		String middlePhotoId = dbop.savePhoto(middleFile);
-		log.debug("save middleFile successfully.");
+		log.debug("save middleFile successfully." + middlePhotoId);
 		
 		//save small photo to mongo
 		String smallPhotoId = dbop.savePhoto(smallFile);
-		log.debug("save smallFile successfully.");
+		log.debug("save smallFile successfully." + smallPhotoId);
 		
 		//query user
 		DBCollection users = dbop.getDB().getCollection(collection);
@@ -176,7 +177,70 @@ public class Updater {
         dbop.DBClose();
 	}
 	
+	/**
+	 * 追加图片到指定的collection中
+	 * @param id record id
+	 * @param file 物理文件（全路径）
+	 * @param collection
+	 * @param key
+	 * @throws Exception
+	 */
+	public void addImage(String id, String file, String collection, String key)
+			throws Exception {
+		
+		DBOperator dbop = new DBOperator();
+		log.debug("connect to mongodb successfully.");
+
+		// save big photo to mongo
+		String imageId = dbop.savePhoto(new File(file));
+		log.debug("save bigFile successfully.");
+
+		// query update data
+		DBCollection rows = dbop.getDB().getCollection(collection);
+		BasicDBObject query = new BasicDBObject("_id", new ObjectId(id));
+		BasicDBObject row = (BasicDBObject) rows.findOne(query);
+		log.debug("find " + collection + " and id = " + row.getString("_id"));
+		
+		// update image
+		setNestDBObject(row, key, imageId);
+		WriteResult res = rows.update(query, row);
+		log.debug("result: " + res.toString());
+
+		dbop.DBClose();
+	}
+
+	/**
+	 * 设定内嵌文档
+	 * @param row 更新对象
+	 * @param key 带点的key，如key1.key2.key3
+	 * @param data 值
+	 */
+	private void setNestDBObject(BasicDBObject row, String key, String data) {
+		
+		String[] keys = key.split("\\.");
+		
+		if (keys.length > 1) {
+
+			BasicDBObject dbobject = null;
+			for (int i = keys.length - 1; i >= 1; i--) {
+				if (i == keys.length - 1) {
+					dbobject = new BasicDBObject();
+					dbobject.put(keys[i], data);
+				} else {
+					BasicDBObject newdbobject = new BasicDBObject();
+					newdbobject.put(keys[i], dbobject);
+					dbobject = newdbobject;
+				}
+			}
+			
+			row.put(keys[0], dbobject);
+		} else {
+			row.put(keys[0], data);
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
-//		new Updater().updateKeywords("50375bd854aa400000000006", "templates", new String[]{"b", "a"});
+		Configuration.conf = new PropertiesConfiguration("server.properties");
+		new Updater().addImage("5211deecf4d1e1b43f000008", "/Users/lilin/Desktop/1.jpg", "users", "photo3.a.b");
 	}
 }

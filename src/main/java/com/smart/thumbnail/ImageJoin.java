@@ -1,6 +1,7 @@
 package com.smart.thumbnail;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import net.arnx.jsonic.JSON;
@@ -17,109 +18,113 @@ import com.smart.mongo.DBOperator;
 import com.smart.mongo.Updater;
 import com.smart.utils.ImageUtil;
 
-public class ImageScissors {
+public class ImageJoin {
 	
-	private static final Logger log = Logger.getLogger(ImageScissors.class); 
+	private static final Logger log = Logger.getLogger(ImageJoin.class); 
 	
 	public static void main(String[] args) throws Exception {
 		
 		Configuration.conf = new PropertiesConfiguration("server.properties");
 		
+		// mq info
 		String mqHost = Configuration.conf.getString("rabbit_host");
 		String mqQueue = Configuration.conf.getString("rabbit_queue_scissors");
 
+		// get channel
 		ConnectionFactory factory = new ConnectionFactory();
 		factory.setHost(mqHost);
-//		factory.setVirtualHost("/");
 		Connection connection = factory.newConnection();
 		Channel channel = connection.createChannel();
-
 		channel.queueDeclare(mqQueue, false, false, false, null);
-		log.info(" [*] Waiting for messages. To exit press CTRL+C");
 
+		// get consumer
 		QueueingConsumer consumer = new QueueingConsumer(channel);
 		channel.basicConsume(mqQueue, true, consumer);
 		
-
 		while (true) {
+			
+			// delivery message
 			QueueingConsumer.Delivery delivery = null;
-			try{
+			try {
 				delivery = consumer.nextDelivery();
-			}catch(Exception e){
-				log.error("get delivery error!\t" + e.getMessage());
+			} catch (Exception e) {
+				log.error("delivery error!\t" + e.getMessage());
 			}
+			
 			if(null == delivery){
 				continue;
 			}
-			String message = new String(delivery.getBody(), "UTF-8");
-			log.debug(" [x] Received '" + message + "'");
 			
-			cut(message);
+			String message = new String(delivery.getBody(), "UTF-8");
+			joinImage(message);
 		}
 	}
 	
-	public static void cut(String message) throws Exception {
+	public static void joinImage(String message) throws Exception {
 
 		Updater updater = new Updater();
 		DBOperator dbop = new DBOperator();
 
-		Map<String, String> params = null;
+		// decode json message
+		log.debug("received message : '" + message + "'");
 
+		Map<String, Object> jsonData = null;
 		try {
-			params = JSON.decode(message);
+			jsonData = JSON.decode(message);
 		} catch (Exception e) {
 			log.error("parse json error!\t" + e.getMessage());
 			return;
 		}
-		
-		if (null == params) {
+
+		if (null == jsonData) {
 			return;
 		}
-		
-		// id
-		String id = params.get("id");
-		
+
+		String filePath = "/tmp/tmp_";
+
 		// file name stored in server
-		String fid = params.get("fid");
-		
+		String id = (String) jsonData.get("id");
+
+		// sample : files [{fid: 5211deecf4d1e1b43f000008, x: '0', y:'0', w:'200', h:'200'}]
+		@SuppressWarnings("unchecked")
+		List<Map<String, String>> files = (List<Map<String, String>>) jsonData
+				.get("files");
+
+		try {
+			// get file from gridfs
+			for (Map<String, String> file : files) {
+				String fid = file.get("fid");
+				dbop.getUserPhoto(fid, filePath + fid);
+				file.put("file", filePath + fid);
+			}
+
+			// final image size
+			int width = Integer.parseInt((String) jsonData.get("width"));
+			int height = Integer.parseInt((String) jsonData.get("height"));
+			ImageUtil.join(files, filePath + id, width, height);
+
+		} catch (Exception e) {
+			log.error("get image error!\t" + e.getMessage());
+			return;
+		}
+
 		// the collection that need to update
-		String collection = params.get("collection");
-		
-		// the position of the x coordinate
-		int x = Integer.parseInt(params.get("x"));
-		
-		// the position of the y coordinate
-		int y = Integer.parseInt(params.get("y"));
-		
-		// cutting width
-		int width = Integer.parseInt(params.get("width"));
-
-		String file = "/tmp/tmp" + fid;
-		try {
-			dbop.getUserPhoto(fid, file);
-		} catch (Exception e) {
-			log.error("get user photo error!\t" + e.getMessage());
-			return;
-		}
+		String collection = (String) jsonData.get("collection");
+		String key = (String) jsonData.get("key");
 
 		try {
-			ImageUtil.cut(file, file + "big", x, y, width, 0, 1, 280, 0); 	// 180x180
-			ImageUtil.cut(file, file + "middle", x, y, width, 0, 1, 50, 0); // 50x50
-			ImageUtil.cut(file, file + "small", x, y, width, 0, 1, 30, 0); 	// 30x30
-		} catch (Exception e) {
-			log.error("operation photo error!\t" + e.getMessage());
-			return;
-		}
-
-		try {
-			updater.updateUserPhoto(id, file, collection);
+			updater.addImage(id, filePath + id, collection, key);
 		} catch (Exception e) {
 			log.error("update user photo error!\t" + e.getMessage());
 			return;
 		}
+
 		log.debug("update user's photo successfully.");
 		try {
-			new File(file).delete();
+			for (Map<String, String> file : files) {
+				new File(filePath + file.get("fid")).delete();
+			}
+			new File(filePath + id).delete();
 		} catch (Exception e) {
 			log.error("file delete error!\t" + e.getMessage());
 			return;
