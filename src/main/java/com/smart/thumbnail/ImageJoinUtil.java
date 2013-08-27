@@ -18,9 +18,9 @@ import com.smart.mongo.DBOperator;
 import com.smart.mongo.Updater;
 import com.smart.utils.ImageUtil;
 
-public class ImageJoin {
+public class ImageJoinUtil {
 	
-	private static final Logger log = Logger.getLogger(ImageJoin.class); 
+	private static final Logger log = Logger.getLogger(ImageJoinUtil.class); 
 	
 	public static void main(String[] args) throws Exception {
 		

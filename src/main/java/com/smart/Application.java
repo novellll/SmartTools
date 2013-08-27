@@ -2,7 +2,7 @@ package com.smart;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 
-import com.smart.thumbnail.ImageJoin;
+import com.smart.thumbnail.ImageJoinUtil;
 import com.smart.thumbnail.ImageScissors;
 
 /**
@@ -22,7 +22,7 @@ public class Application {
 		String message = args[1];
 		
 		if ("join".equals(type)) {
-			ImageJoin.joinImage(message);
+			ImageJoinUtil.joinImage(message);
 		}
 		
 		if ("cut".equals(type)) {
