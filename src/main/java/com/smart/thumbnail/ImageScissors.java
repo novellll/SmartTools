@@ -26,7 +26,7 @@ public class ImageScissors {
 		Configuration.conf = new PropertiesConfiguration("server.properties");
 		
 		String mqHost = Configuration.conf.getString("rabbit_host");
-		String mqQueue = Configuration.conf.getString("rabbit_queue_scissors");
+		String mqQueue = Configuration.conf.getString("rabbit_queue_thumb");
 
 		ConnectionFactory factory = new ConnectionFactory();
 		factory.setHost(mqHost);

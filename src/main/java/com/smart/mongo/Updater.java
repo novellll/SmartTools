@@ -160,12 +160,12 @@ public class Updater {
 		log.debug("find "+collection+" and id = " + user.getString("id"));
 		
 		//update user's photo
-		BasicDBObject photos = new BasicDBObject();
-		photos.put("big", bigPhotoId);
-		photos.put("middle", middlePhotoId);
-		photos.put("small", smallPhotoId);
+		BasicDBObject thumb = new BasicDBObject();
+		thumb.put("big", bigPhotoId);
+		thumb.put("middle", middlePhotoId);
+		thumb.put("small", smallPhotoId);
 
-        user.put("photo", photos);
+        user.put("thumb", thumb);
         
         WriteResult res = users.update(query, user);
         log.debug("result: " + res.toString());
@@ -221,6 +221,10 @@ public class Updater {
 
 		BasicDBObject layout = (BasicDBObject)row.get(keys[0]);
 		BasicDBObject image = (BasicDBObject)layout.get(keys[1]);
+		if (image == null) {
+			image = new BasicDBObject();
+			layout.put(keys[1], image);
+		}
 		image.put(keys[2], data);
 	}
 	

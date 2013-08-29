@@ -83,12 +83,13 @@ public class ImageUtil {
 	    int srcWidth = bi.getWidth();
 	    int srcHeight = bi.getHeight();
 
-	    // calculate the height 
-	    int destHeight = pDestHeight > 0 ? pDestHeight : Math.round(pDestWidth * srcHeight / srcWidth);
+	    // calculate the height
+	    int destWidth = pDestWidth > 0 ? pDestWidth : srcWidth;
+	    int destHeight = pDestHeight > 0 ? pDestHeight : Math.round(destWidth * srcHeight / srcWidth);
 	    int finalHeight = pFinalHeight > 0 ? pFinalHeight : Math.round(pFinalWidth * srcHeight / srcWidth);
 	    
     	// crop image
-    	ImageFilter cropFilter = new CropImageFilter(x, y, pDestWidth, destHeight);
+    	ImageFilter cropFilter = new CropImageFilter(x, y, destWidth, destHeight);
     	Image image = Toolkit.getDefaultToolkit().createImage(new FilteredImageSource(bi.getSource(), cropFilter));
         
         // zoom image
