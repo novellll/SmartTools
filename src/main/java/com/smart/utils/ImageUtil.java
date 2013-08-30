@@ -1,13 +1,17 @@
 package com.smart.utils;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.CropImageFilter;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +22,35 @@ import org.apache.log4j.Logger;
 public class ImageUtil {
 	
 	private static final Logger log = Logger.getLogger(ImageUtil.class);
+	
+	public static void main(String[] args) throws Exception {
+		
+		List<Map<String, String>> files = new ArrayList<Map<String,String>>();
+		Map<String, String> m = new HashMap<String, String>();
+		m.put("file", "/Users/lilin/Desktop/1.png");
+		m.put("x", "0");
+		m.put("y", "0");
+		m.put("w", "1000");
+		m.put("h", "800");
+		files.add(m);
+		
+		m = new HashMap<String, String>();
+		m.put("file", "/Users/lilin/Desktop/2.png");
+		m.put("x", "0");
+		m.put("y", "0");
+		m.put("w", "1024");
+		m.put("h", "723");
+		files.add(m);
+		
+		String destFile = "/Users/lilin/Desktop/result.png";
+		int pFinalWidth = 1024;
+		int pFinalHeight = 768;
+		
+		join(files, destFile, pFinalWidth, pFinalHeight);
+		
+		cut("/Users/lilin/Desktop/2.png", "/Users/lilin/Desktop/result.png", 
+				0, 0, 0, 0, 1, 500, 500);
+	}
 	
 	/**
 	 * 结合图片，数据例
@@ -49,7 +82,7 @@ public class ImageUtil {
         g.dispose();
         
         // write to file
-        ImageIO.write(tag, "JPEG", new File(destFile));
+        ImageIO.write(tag, "PNG", new File(destFile));
 		log.debug("union photo successfully and file name is " + destFile);
 	}
 	
@@ -95,14 +128,16 @@ public class ImageUtil {
         // zoom image
         image = image.getScaledInstance(pFinalWidth, Math.round(finalHeight * ratio), Image.SCALE_SMOOTH);
         BufferedImage tag = new BufferedImage(pFinalWidth, Math.round(finalHeight * ratio), BufferedImage.TYPE_INT_RGB);
-        
-        // draw photo
-        Graphics g = tag.getGraphics();
-        g.drawImage(image, 0, 0, null); 
-        g.dispose();
+
+        // create trans graphics
+        Graphics2D g2d = tag.createGraphics();
+        tag = g2d.getDeviceConfiguration().createCompatibleImage(pFinalWidth, Math.round(finalHeight * ratio), Transparency.TRANSLUCENT);
+        g2d= tag.createGraphics();
+        g2d.drawImage(image, 0, 0, null);
+        g2d.dispose();
         
         // write to file
-        ImageIO.write(tag, "JPEG", new File(destFile));
+        ImageIO.write(tag, "PNG", new File(destFile));
 		log.debug("cut photo successfully and file name is " + destFile);
 	}
 }
