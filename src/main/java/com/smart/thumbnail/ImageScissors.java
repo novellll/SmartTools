@@ -103,9 +103,9 @@ public class ImageScissors {
 		}
 
 		try {
-			ImageUtil.cut(file, file + "big", x, y, width, 0, 1, 280, 0); 	// 180x180
-			ImageUtil.cut(file, file + "middle", x, y, width, 0, 1, 50, 0); // 50x50
-			ImageUtil.cut(file, file + "small", x, y, width, 0, 1, 30, 0); 	// 30x30
+			ImageUtil.cut(file, file + "big", x, y, width, 0, 1, 512, 0);
+			ImageUtil.cut(file, file + "middle", x, y, width, 0, 1, 256, 0);
+			ImageUtil.cut(file, file + "small", x, y, width, 0, 1, 128, 0);
 		} catch (Exception e) {
 			log.error("operation photo error!\t" + e.getMessage());
 			return;
