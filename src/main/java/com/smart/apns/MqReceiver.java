@@ -50,15 +50,22 @@ public class MqReceiver {
 			log.debug("delivery");
 			QueueingConsumer.Delivery delivery = consumer.nextDelivery();
 			
-			String message = new String(delivery.getBody(), "UTF-8");
-			Map<String, String> res = JSON.decode(message);
-			log.debug(message);
+			String message = null;
 			
-			String target = res.get("target");
-			String body = res.get("body");
+			try {
+				message = new String(delivery.getBody(), "UTF-8");
+				Map<String, String> res = JSON.decode(message);
+				log.debug(message);
+				
+				String target = res.get("target");
+				String body = res.get("body");
+				
+				apn.push(service, target, body);
+			} catch (Exception e) {
+				log.error("parse json error!\t" + e.getMessage());
+				continue;
+			}
 			
-			apn.push(service, target, body);
-
 			log.debug("Processing the next message");
 		}	
 	}
