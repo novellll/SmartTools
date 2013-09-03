@@ -24,7 +24,12 @@ public class ApnUtils {
 		ApnUtils self = new ApnUtils();
 		
 		ApnsService service = self.createService();
-		self.push(service, "51bed7edfd6c92d339000031", "日本語をプッシュする");
+		self.push(service, "5211deecf4d1e1b43f000031", "aaa");
+
+//		String payload = APNS.newPayload().alertBody("日本語を送る").build();
+//		String token = "7323839f022c6f7cb1ade9840143a53299315a065ece93a040e8e46486a93b24";
+//		service.push(token, payload);
+		
 	}
 	
 	/**
@@ -39,6 +44,7 @@ public class ApnUtils {
 		
 		for (String token : new ModApn().getToken(target)) {
 			service.push(token, payload);
+			log.debug("token : " + token);
 		}
 		
 		log.debug("target : " + target);
@@ -50,16 +56,29 @@ public class ApnUtils {
 	 * @return
 	 */
 	public ApnsService createService() {
+		
+		ApnsService service = null;
+				
 		String certFile = Configuration.conf.getString("apn_cert_file");
 		String certPass = Configuration.conf.getString("apn_cert_pass");
+		String certFileDev = Configuration.conf.getString("apn_cert_file_dev");
+		String certIsProd = Configuration.conf.getString("apn_cert_production");
 		
-		InputStream is = getClass().getClassLoader().getResourceAsStream(certFile);
-		
-		ApnsService service = APNS.newService()
-			    .withCert(is, certPass)
-			    //.withSandboxDestination()
-			    .withProductionDestination()
-			    .build();
+		if ("yes".equals(certIsProd)) {
+			// Production mode
+			InputStream is = getClass().getClassLoader().getResourceAsStream(certFile);
+			service = APNS.newService()
+				    .withCert(is, certPass)
+				    .withProductionDestination()
+				    .build();
+		} else {
+			// Development mod
+			InputStream is = getClass().getClassLoader().getResourceAsStream(certFileDev);
+			service = APNS.newService()
+				    .withCert(is, certPass)
+				    .withSandboxDestination()
+				    .build();
+		}
 		
 		return service;
 	}
