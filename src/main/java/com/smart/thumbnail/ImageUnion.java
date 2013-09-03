@@ -51,7 +51,7 @@ public class ImageUnion {
 	private static final int INTER_WIDTH = 2;
 
 	/** 是否支持图片的自动旋转 */
-	private static boolean AUTO_ROTATE = true;
+	private static boolean AUTO_ROTATE = false;
 
 	/**
 	 * 存放待结合图片的目录
@@ -93,8 +93,17 @@ public class ImageUnion {
 					Metadata metadata = ImageMetadataReader.readMetadata(f);
 					Directory directory = metadata
 							.getDirectory(ExifDirectory.class);
-					newQuatangle.setDirectory(directory
-							.getInt(ExifIFD0Directory.TAG_ORIENTATION));
+					if(directory!=null){
+//						System.out.println("directory"+directory.toString()+"directory.getInt(ExifIFD0Directory.TAG_ORIENTATION)"+directory.getInt(ExifIFD0Directory.TAG_ORIENTATION));
+//						newQuatangle.setDirectory(directory.getInt(ExifIFD0Directory.TAG_ORIENTATION));
+					}else{
+						System.out.println("no directory  bimg.getWidth()"+bimg.getWidth()+"bimg.getHeight()"+bimg.getHeight());
+						if(bimg.getWidth() > bimg.getHeight()){
+							newQuatangle.setDirectory(6);
+						}else{
+							newQuatangle.setDirectory(3);
+						}
+					}
 
 					// 如果是横向图片，则对调宽高
 					if (newQuatangle.getDirectory() == 6) {
@@ -143,9 +152,17 @@ public class ImageUnion {
 					Metadata metadata = ImageMetadataReader.readMetadata(f);
 					Directory directory = metadata
 							.getDirectory(ExifDirectory.class);
-					newQuatangle.setDirectory(directory
-							.getInt(ExifIFD0Directory.TAG_ORIENTATION));
-
+					if(directory!=null){
+						System.out.println("directory"+directory.toString());
+						newQuatangle.setDirectory(directory.getInt(ExifIFD0Directory.TAG_ORIENTATION));
+					}else{
+						System.out.println("no directory");
+						if(bimg.getWidth() > bimg.getHeight()){
+							newQuatangle.setDirectory(6);
+						}else{
+							newQuatangle.setDirectory(3);
+						}
+					}
 					// 如果是横向图片，则对调宽高
 					if (newQuatangle.getDirectory() == 6) {
 						newQuatangle.setEdge(bimg.getHeight(), bimg.getWidth());
@@ -187,16 +204,22 @@ public class ImageUnion {
 
 			BufferedImage file = ImageIO.read(size.getFile());
 
-			// 旋转
-			file = (AUTO_ROTATE && size.getDirectory() == 6) ? rotate90ToRight(file)
-					: file;
-			file = (AUTO_ROTATE && size.getDirectory() == 3) ? rotate90ToRight(rotate90ToRight(file))
-					: file;
+//			// 旋
+//			file = (AUTO_ROTATE && size.getDirectory() == 6) ? rotate90ToRight(file)
+//					: file;
+//			file = (AUTO_ROTATE && size.getDirectory() == 3) ? file
+//					: file;
 
 			// 调整大小
-			Image workimage = file.getScaledInstance((int) size.getAedge(),
+			Image workimage;
+			System.out.println("size.getDirectory() "+size.getDirectory());
+			if(size.getDirectory() ==6 )
+				workimage = file.getScaledInstance((int) size.getAedge(),
 					(int) size.getBedge(), BufferedImage.SCALE_SMOOTH);
-
+			else{
+				workimage = file.getScaledInstance((int) size.getBedge(),
+						(int) size.getAedge(), BufferedImage.SCALE_SMOOTH);
+			}
 			// 在结果画板上绘制调整后的图片
 			graphics.drawImage(workimage, (int) size.getX(), (int) size.getY(),
 					null);
@@ -345,6 +368,7 @@ public class ImageUnion {
 														.get(subIndex)
 														.get(ssIndex))
 												.getProp())) + INTER_WIDTH;
+								System.out.println("---352 -- sumSubY:"+sumSubY);
 							}
 							threeDim.get(tmpIndex).get(subIndex)
 									.remove(ssIndex);
@@ -427,6 +451,7 @@ public class ImageUnion {
 														.get(subIndex)
 														.get(ssIndex))
 												.getProp())) + INTER_WIDTH;
+								System.out.println("-- 435 --sumbSubY:"+sumSubY);
 							}
 
 							threeDim.get(tmpIndex).get(subIndex)
@@ -438,9 +463,14 @@ public class ImageUnion {
 					}
 				}
 				threeDim.get(tmpIndex).remove(subIndex);
+
+				System.out.println("---448 --- sumSubY:"+sumSubY);
 			}
 			sumY = sumY + ((int) (TEMP_WIDTH / sumProp)) + INTER_WIDTH;
+			System.out.println("--451--((int) (TEMP_WIDTH / sumProp))"+((int) (TEMP_WIDTH / sumProp))+"TEMP_WIDTH:"+TEMP_WIDTH);
+			System.out.println("--452-- sumProp:"+sumProp);
 			threeDim.remove(tmpIndex);
+			
 		}
 		return sumY;
 	}
@@ -921,6 +951,7 @@ public class ImageUnion {
 		}
 
 		public double getProp() {
+			System.out.println("aEdge:"+aEdge+"bEdge:"+bEdge);
 			return ((double) this.aEdge) / ((double) this.bEdge);
 		}
 
