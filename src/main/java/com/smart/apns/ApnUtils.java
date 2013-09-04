@@ -66,6 +66,7 @@ public class ApnUtils {
 		
 		if ("yes".equals(certIsProd)) {
 			// Production mode
+			log.debug("file : " + certFile);
 			InputStream is = getClass().getClassLoader().getResourceAsStream(certFile);
 			service = APNS.newService()
 				    .withCert(is, certPass)
