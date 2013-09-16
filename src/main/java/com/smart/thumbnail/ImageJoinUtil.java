@@ -63,7 +63,6 @@ public class ImageJoinUtil {
 	public static void joinImage(String message) throws Exception {
 
 		Updater updater = new Updater();
-		DBOperator dbop = new DBOperator();
 
 		// decode json message
 		log.debug("received message : '" + message + "'");
@@ -84,11 +83,14 @@ public class ImageJoinUtil {
 
 		// file name stored in server
 		String id = (String) jsonData.get("id");
+		String code = (String) jsonData.get("code");
 
 		// sample : files [{fid: 5211deecf4d1e1b43f000008, x: '0', y:'0', w:'200', h:'200'}]
 		@SuppressWarnings("unchecked")
 		List<Map<String, String>> files = (List<Map<String, String>>) jsonData
 				.get("files");
+
+		DBOperator dbop = new DBOperator(code);
 
 		try {
 			// get file from gridfs
@@ -113,7 +115,7 @@ public class ImageJoinUtil {
 		String key = (String) jsonData.get("key");
 
 		try {
-			updater.addImage(id, filePath + id, collection, key);
+			updater.addImage(code, id, filePath + id, collection, key);
 		} catch (Exception e) {
 			log.error("update user photo error!\t" + e.getMessage());
 			return;

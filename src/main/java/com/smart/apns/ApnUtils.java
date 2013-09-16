@@ -24,7 +24,7 @@ public class ApnUtils {
 		ApnUtils self = new ApnUtils();
 		
 		ApnsService service = self.createService();
-		self.push(service, "5211deecf4d1e1b43f000031", "aaa");
+		self.push(service, "test", "5211deecf4d1e1b43f000031", "aaa");
 
 //		String payload = APNS.newPayload().alertBody("日本語を送る").build();
 //		String token = "7323839f022c6f7cb1ade9840143a53299315a065ece93a040e8e46486a93b24";
@@ -39,10 +39,10 @@ public class ApnUtils {
 	 * @param body
 	 * @throws Exception 
 	 */
-	public void push(ApnsService service, String target, String body) throws Exception {
+	public void push(ApnsService service, String code, String target, String body) throws Exception {
 		String payload = APNS.newPayload().sound("default").alertBody(body).build();
 		
-		for (String token : new ModApn().getToken(target)) {
+		for (String token : new ModApn(code).getToken(target)) {
 			service.push(token, payload);
 			log.debug("token : " + token);
 		}

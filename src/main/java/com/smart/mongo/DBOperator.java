@@ -16,10 +16,10 @@ public class DBOperator {
 	private DB db;
 	private GridFS fs;
 	
-	public DBOperator() throws Exception{
+	public DBOperator(String code) throws Exception{
 		String dbHost = Configuration.conf.getString("mongo_host");
 		int dbPort = Configuration.conf.getInt("mongo_port");
-		String dbName = Configuration.conf.getString("mongo_db");
+		String dbName = code;
 
 		m = new MongoClient(dbHost , dbPort);
 		db = m.getDB( dbName );

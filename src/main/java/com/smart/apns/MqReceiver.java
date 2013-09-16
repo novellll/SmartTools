@@ -59,8 +59,9 @@ public class MqReceiver {
 				
 				String target = res.get("target");
 				String body = res.get("body");
+				String code = res.get("code");
 				
-				apn.push(service, target, body);
+				apn.push(service, code, target, body);
 			} catch (Exception e) {
 				log.error("parse json error!\t" + e.getMessage());
 				continue;

@@ -21,8 +21,8 @@ public class Updater {
 
 	private static final Logger log = Logger.getLogger(Updater.class);
 	
-	public void updateMsgThumb(String messageId ,String fileId,int height,int width,String collection) throws Exception{
-		DBOperator dbop = new DBOperator();
+	public void updateMsgThumb(String code, String messageId ,String fileId,int height,int width,String collection) throws Exception{
+		DBOperator dbop = new DBOperator(code);
 		log.debug("connect to mongodb successfully.");
 		DBCollection messages = dbop.getDB().getCollection(collection);
 		BasicDBObject query = new BasicDBObject("_id", new ObjectId(messageId));
@@ -38,14 +38,14 @@ public class Updater {
         dbop.DBClose();
 	}
 	
-	public void updateKeywords(String id, String collection, String[] keywords) throws Exception {
+	public void updateKeywords(String code, String id, String collection, String[] keywords) throws Exception {
 		
 		List<String> params = new ArrayList<String>();
 		for (String keyword : keywords) {
 			params.add(keyword);
 		}
 		
-		updateKeywords(id, collection, params);
+		updateKeywords(code, id, collection, params);
 	}
 	
 	/**
@@ -55,14 +55,13 @@ public class Updater {
 	 * @param params
 	 * @throws Exception
 	 */
-	public void transfer(String key, String params) throws Exception {
+	public void transfer(String code, String key, String params) throws Exception {
 
 		String dbHost = Configuration.conf.getString("mongo_host");
 		int dbPort = Configuration.conf.getInt("mongo_port");
-		String dbName = Configuration.conf.getString("mongo_db");
 
 		MongoClient m = new MongoClient( dbHost , dbPort );
-		DB db = m.getDB( dbName );
+		DB db = m.getDB( code );
 
 		DBCollection templates = db.getCollection("box");
 		
@@ -77,14 +76,13 @@ public class Updater {
         m.close();
 	}
 
-	public void updateIndex(String target, String type, String word, String count, String lang) throws Exception {
+	public void updateIndex(String code, String target, String type, String word, String count, String lang) throws Exception {
 
 		String dbHost = Configuration.conf.getString("mongo_host");
 		int dbPort = Configuration.conf.getInt("mongo_port");
-		String dbName = Configuration.conf.getString("mongo_db");
 
 		MongoClient m = new MongoClient( dbHost , dbPort );
-		DB db = m.getDB( dbName );
+		DB db = m.getDB( code );
 
 		DBCollection templates = db.getCollection("fulltexts");
 		
@@ -111,14 +109,13 @@ public class Updater {
 	 * @param keywords
 	 * @throws Exception
 	 */
-	public void updateKeywords(String id, String collection, List<String> keywords) throws Exception {
+	public void updateKeywords(String code, String id, String collection, List<String> keywords) throws Exception {
 		
 		String dbHost = Configuration.conf.getString("mongo_host");
 		int dbPort = Configuration.conf.getInt("mongo_port");
-		String dbName = Configuration.conf.getString("mongo_db");
 
 		MongoClient m = new MongoClient( dbHost , dbPort );
-		DB db = m.getDB( dbName );
+		DB db = m.getDB( code );
 
 		DBCollection templates = db.getCollection(collection);
 		BasicDBObject query = new BasicDBObject("_id", new ObjectId(id));
@@ -133,8 +130,8 @@ public class Updater {
 	}
 	
 	//create three kinds of photo and update user's or group's photo property
-	public void updateUserPhoto(String id, String file, String collection) throws Exception{
-		DBOperator dbop = new DBOperator();
+	public void updateUserPhoto(String code, String id, String file, String collection) throws Exception{
+		DBOperator dbop = new DBOperator(code);
 		log.debug("connect to mongodb successfully.");
 		
 		File bigFile = new File(file + "big");
@@ -185,10 +182,10 @@ public class Updater {
 	 * @param key
 	 * @throws Exception
 	 */
-	public void addImage(String id, String file, String collection, String key)
+	public void addImage(String code, String id, String file, String collection, String key)
 			throws Exception {
 		
-		DBOperator dbop = new DBOperator();
+		DBOperator dbop = new DBOperator(code);
 		log.debug("connect to mongodb successfully.");
 
 		// save big photo to mongo
@@ -230,6 +227,6 @@ public class Updater {
 	
 	public static void main(String[] args) throws Exception {
 		Configuration.conf = new PropertiesConfiguration("server.properties");
-		new Updater().addImage("5211deecf4d1e1b43f000008", "/Users/lilin/Desktop/logo.jpg", "users", "photo3.a.f");
+		new Updater().addImage("testdb", "5211deecf4d1e1b43f000008", "/Users/lilin/Desktop/logo.jpg", "users", "photo3.a.f");
 	}
 }

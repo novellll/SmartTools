@@ -18,13 +18,12 @@ public class ModApn {
 	private DB db;
 	private DBCollection coll;
 
-	public ModApn() throws Exception{
+	public ModApn(String code) throws Exception{
 		String dbHost = Configuration.conf.getString("mongo_host");
 		int dbPort = Configuration.conf.getInt("mongo_port");
-		String dbName = Configuration.conf.getString("mongo_db");
 
 		this.m = new MongoClient( dbHost , dbPort );
-		this.db = m.getDB( dbName );
+		this.db = m.getDB( code );
 		this.coll = db.getCollection("apns");
 	}
 	

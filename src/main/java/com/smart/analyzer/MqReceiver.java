@@ -57,6 +57,7 @@ public class MqReceiver {
 			String target = res.get("target");
 			String type = res.get("type");
 			String body = res.get("body");
+			String code = res.get("code");
 			
 			// 解析文件内容
 			if (type.equals("4")) {
@@ -66,13 +67,13 @@ public class MqReceiver {
 			// 日文分词
 			List<String> jpWordsList = japanese.analyzer(body);
 			for (String word : jpWordsList) {
-				updater.updateIndex(target, type, word, "1", "japanese");
+				updater.updateIndex(code, target, type, word, "1", "japanese");
 			}
 
 			// 中文分词
 			List<String> cnWordsList = chinese.analyzer(body);
 			for (String word : cnWordsList) {
-				updater.updateIndex(target, type, word, "1", "chinese");
+				updater.updateIndex(code, target, type, word, "1", "chinese");
 			}
 			
 			log.debug("Processing the next message");

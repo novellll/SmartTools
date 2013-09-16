@@ -60,9 +60,6 @@ public class ImageScissors {
 	
 	public static void cut(String message) throws Exception {
 
-		Updater updater = new Updater();
-		DBOperator dbop = new DBOperator();
-
 		Map<String, String> params = null;
 
 		try {
@@ -93,8 +90,14 @@ public class ImageScissors {
 		
 		// cutting width
 		int width = Integer.parseInt(params.get("width"));
+		
+		// db name
+		String code = params.get("code");
 
 		String file = "/tmp/tmp" + fid;
+		Updater updater = new Updater();
+		DBOperator dbop = new DBOperator(code);
+
 		try {
 			dbop.getUserPhoto(fid, file);
 		} catch (Exception e) {
@@ -112,7 +115,7 @@ public class ImageScissors {
 		}
 
 		try {
-			updater.updateUserPhoto(id, file, collection);
+			updater.updateUserPhoto(code, id, file, collection);
 		} catch (Exception e) {
 			log.error("update user photo error!\t" + e.getMessage());
 			return;
