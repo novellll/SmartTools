@@ -41,7 +41,6 @@ public class ImageThumb {
 		channel.basicConsume(mqQueue, true, consumer);
 
 		Updater updater = new Updater();
-		DBOperator dbop = new DBOperator();
 		while (true) {
 			QueueingConsumer.Delivery delivery = null;
 			try {
@@ -70,7 +69,7 @@ public class ImageThumb {
 			String fids = res.get("fids");
 
 			String messageId = res.get("msg_id");
-
+			String code = res.get("code");
 
 			String collection = res.get("collection");
 			log.debug("messageId:" + messageId + "fids:" + fids + "collection:"
@@ -79,6 +78,7 @@ public class ImageThumb {
 
 			String[] fidArray = fids.split(",");
 
+			DBOperator dbop = new DBOperator(code);
 			ArrayList<String> tmpFile = new ArrayList<String>();
 			for (String fid : fidArray) {
 				String file = tmpPath + fid;
@@ -108,7 +108,7 @@ public class ImageThumb {
 				String savePhoto = dbop.savePhoto(new File(tmpPath + messageId
 						+ ".png"));
 
-				updater.updateMsgThumb(messageId, savePhoto, unionImageHeigth,
+				updater.updateMsgThumb(code, messageId, savePhoto, unionImageHeigth,
 						500, collection);
 			} catch (Exception e) {
 				// TODO: handle exception

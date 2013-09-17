@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
 
@@ -20,8 +21,8 @@ public class Updater {
 
 	private static final Logger log = Logger.getLogger(Updater.class);
 	
-	public void updateMsgThumb(String messageId ,String fileId,int height,int width,String collection) throws Exception{
-		DBOperator dbop = new DBOperator();
+	public void updateMsgThumb(String code, String messageId ,String fileId,int height,int width,String collection) throws Exception{
+		DBOperator dbop = new DBOperator(code);
 		log.debug("connect to mongodb successfully.");
 		DBCollection messages = dbop.getDB().getCollection(collection);
 		BasicDBObject query = new BasicDBObject("_id", new ObjectId(messageId));
@@ -37,14 +38,14 @@ public class Updater {
         dbop.DBClose();
 	}
 	
-	public void updateKeywords(String id, String collection, String[] keywords) throws Exception {
+	public void updateKeywords(String code, String id, String collection, String[] keywords) throws Exception {
 		
 		List<String> params = new ArrayList<String>();
 		for (String keyword : keywords) {
 			params.add(keyword);
 		}
 		
-		updateKeywords(id, collection, params);
+		updateKeywords(code, id, collection, params);
 	}
 	
 	/**
@@ -54,14 +55,13 @@ public class Updater {
 	 * @param params
 	 * @throws Exception
 	 */
-	public void transfer(String key, String params) throws Exception {
+	public void transfer(String code, String key, String params) throws Exception {
 
 		String dbHost = Configuration.conf.getString("mongo_host");
 		int dbPort = Configuration.conf.getInt("mongo_port");
-		String dbName = Configuration.conf.getString("mongo_db");
 
 		MongoClient m = new MongoClient( dbHost , dbPort );
-		DB db = m.getDB( dbName );
+		DB db = m.getDB( code );
 
 		DBCollection templates = db.getCollection("box");
 		
@@ -76,14 +76,13 @@ public class Updater {
         m.close();
 	}
 
-	public void updateIndex(String target, String type, String word, String count, String lang) throws Exception {
+	public void updateIndex(String code, String target, String type, String word, String count, String lang) throws Exception {
 
 		String dbHost = Configuration.conf.getString("mongo_host");
 		int dbPort = Configuration.conf.getInt("mongo_port");
-		String dbName = Configuration.conf.getString("mongo_db");
 
 		MongoClient m = new MongoClient( dbHost , dbPort );
-		DB db = m.getDB( dbName );
+		DB db = m.getDB( code );
 
 		DBCollection templates = db.getCollection("fulltexts");
 		
@@ -110,14 +109,13 @@ public class Updater {
 	 * @param keywords
 	 * @throws Exception
 	 */
-	public void updateKeywords(String id, String collection, List<String> keywords) throws Exception {
+	public void updateKeywords(String code, String id, String collection, List<String> keywords) throws Exception {
 		
 		String dbHost = Configuration.conf.getString("mongo_host");
 		int dbPort = Configuration.conf.getInt("mongo_port");
-		String dbName = Configuration.conf.getString("mongo_db");
 
 		MongoClient m = new MongoClient( dbHost , dbPort );
-		DB db = m.getDB( dbName );
+		DB db = m.getDB( code );
 
 		DBCollection templates = db.getCollection(collection);
 		BasicDBObject query = new BasicDBObject("_id", new ObjectId(id));
@@ -132,8 +130,8 @@ public class Updater {
 	}
 	
 	//create three kinds of photo and update user's or group's photo property
-	public void updateUserPhoto(String id, String file, String collection) throws Exception{
-		DBOperator dbop = new DBOperator();
+	public void updateUserPhoto(String code, String id, String file, String collection) throws Exception{
+		DBOperator dbop = new DBOperator(code);
 		log.debug("connect to mongodb successfully.");
 		
 		File bigFile = new File(file + "big");
@@ -142,15 +140,15 @@ public class Updater {
 		
 		//save big photo to mongo
 		String bigPhotoId = dbop.savePhoto(bigFile);
-		log.debug("save bigFile successfully.");
+		log.debug("save bigFile successfully." + bigPhotoId);
 		
 		//save middle photo to mongo
 		String middlePhotoId = dbop.savePhoto(middleFile);
-		log.debug("save middleFile successfully.");
+		log.debug("save middleFile successfully." + middlePhotoId);
 		
 		//save small photo to mongo
 		String smallPhotoId = dbop.savePhoto(smallFile);
-		log.debug("save smallFile successfully.");
+		log.debug("save smallFile successfully." + smallPhotoId);
 		
 		//query user
 		DBCollection users = dbop.getDB().getCollection(collection);
@@ -159,12 +157,12 @@ public class Updater {
 		log.debug("find "+collection+" and id = " + user.getString("id"));
 		
 		//update user's photo
-		BasicDBObject photos = new BasicDBObject();
-		photos.put("big", bigPhotoId);
-		photos.put("middle", middlePhotoId);
-		photos.put("small", smallPhotoId);
+		BasicDBObject thumb = new BasicDBObject();
+		thumb.put("big", bigPhotoId);
+		thumb.put("middle", middlePhotoId);
+		thumb.put("small", smallPhotoId);
 
-        user.put("photo", photos);
+        user.put("thumb", thumb);
         
         WriteResult res = users.update(query, user);
         log.debug("result: " + res.toString());
@@ -176,7 +174,59 @@ public class Updater {
         dbop.DBClose();
 	}
 	
+	/**
+	 * 追加图片到指定的collection中
+	 * @param id record id
+	 * @param file 物理文件（全路径）
+	 * @param collection
+	 * @param key
+	 * @throws Exception
+	 */
+	public void addImage(String code, String id, String file, String collection, String key)
+			throws Exception {
+		
+		DBOperator dbop = new DBOperator(code);
+		log.debug("connect to mongodb successfully.");
+
+		// save big photo to mongo
+		String imageId = dbop.savePhoto(new File(file));
+		log.debug("save bigFile successfully.");
+
+		// query update data
+		DBCollection rows = dbop.getDB().getCollection(collection);
+		BasicDBObject query = new BasicDBObject("_id", new ObjectId(id));
+		BasicDBObject row = (BasicDBObject) rows.findOne(query);
+		log.debug("find " + collection + " and id = " + row.getString("_id"));
+		
+		// update image
+		setNestDBObject(row, key, imageId);
+		WriteResult res = rows.update(query, row);
+		log.debug("result: " + res.toString());
+
+		dbop.DBClose();
+	}
+
+	/**
+	 * 设定内嵌文档
+	 * @param row 更新对象
+	 * @param key 带点的key，如key1.key2.key3
+	 * @param data 值
+	 */
+	private void setNestDBObject(BasicDBObject row, String key, String data) {
+		
+		String[] keys = key.split("\\.");
+
+		BasicDBObject layout = (BasicDBObject)row.get(keys[0]);
+		BasicDBObject image = (BasicDBObject)layout.get(keys[1]);
+		if (image == null) {
+			image = new BasicDBObject();
+			layout.put(keys[1], image);
+		}
+		image.put(keys[2], data);
+	}
+	
 	public static void main(String[] args) throws Exception {
-//		new Updater().updateKeywords("50375bd854aa400000000006", "templates", new String[]{"b", "a"});
+		Configuration.conf = new PropertiesConfiguration("server.properties");
+		new Updater().addImage("testdb", "5211deecf4d1e1b43f000008", "/Users/lilin/Desktop/logo.jpg", "users", "photo3.a.f");
 	}
 }
