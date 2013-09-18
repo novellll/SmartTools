@@ -9,29 +9,30 @@ import com.notnoop.apns.APNS;
 import com.notnoop.apns.ApnsService;
 import com.smart.Configuration;
 import com.smart.mongo.ModApn;
+import com.smart.mongo.ModDevice;
 
 public class ApnUtils {
 
 	private static final Logger log = Logger.getLogger(ApnUtils.class); 
 
 	/**
-	 * @param args
+	 * 发送密码
+	 * @param service
+	 * @param target
+	 * @param body
 	 * @throws Exception 
 	 */
-	public static void main(String[] args) throws Exception {
+	public void pushPassword(ApnsService service, String code, String uid, String body) throws Exception {
+		String payload = APNS.newPayload().sound("default").alertBody(body).build();
 		
-		Configuration.conf = new PropertiesConfiguration("server.properties");
-		ApnUtils self = new ApnUtils();
+		for (String token : new ModDevice(code).getToken(uid)) {
+			service.push(token, payload);
+			log.debug("token : " + token);
+		}
 		
-		ApnsService service = self.createService();
-		self.push(service, "test", "5211deecf4d1e1b43f000031", "aaa");
-
-//		String payload = APNS.newPayload().alertBody("日本語を送る").build();
-//		String token = "7323839f022c6f7cb1ade9840143a53299315a065ece93a040e8e46486a93b24";
-//		service.push(token, payload);
-		
+		log.debug("uid id : " + uid);
+		log.debug("push message : " + body);
 	}
-	
 	/**
 	 * 发送通知
 	 * @param service
@@ -42,7 +43,7 @@ public class ApnUtils {
 	public void push(ApnsService service, String code, String target, String body) throws Exception {
 		String payload = APNS.newPayload().sound("default").alertBody(body).build();
 		
-		for (String token : new ModApn(code).getToken(target)) {
+		for (String token : new ModDevice(code).getToken(target)) {
 			service.push(token, payload);
 			log.debug("token : " + token);
 		}
