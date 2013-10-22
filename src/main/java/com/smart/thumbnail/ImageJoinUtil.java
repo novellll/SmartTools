@@ -21,14 +21,32 @@ import com.smart.utils.ImageUtil;
 public class ImageJoinUtil {
 	
 	private static final Logger log = Logger.getLogger(ImageJoinUtil.class); 
+	public static final long WAIT_SHORT = 1000 * 30;
+	public static final long WAIT_LONG = 1000 * 60 * 5;
+	
+	private static long errorTime = 0;
+	
+	private static boolean stop = false;
+	
 	
 	public static void main(String[] args) throws Exception {
-		
+		while(!stop) {
+			run();
+		}
+	}
+	
+	public static void run()  throws Exception {
 		Configuration.conf = new PropertiesConfiguration("server.properties");
 		
 		// mq info
 		String mqHost = Configuration.conf.getString("rabbit_host");
 		String mqQueue = Configuration.conf.getString("rabbit_queue_join");
+		
+		String info = "Connect mq server." + 
+				" " + (errorTime + 1) + " time" +
+				" Host:" + mqHost + 
+				"  Queue:" + mqQueue;
+		log.info(info);
 
 		// get channel
 		ConnectionFactory factory = new ConnectionFactory();
@@ -41,6 +59,7 @@ public class ImageJoinUtil {
 		QueueingConsumer consumer = new QueueingConsumer(channel);
 		channel.basicConsume(mqQueue, true, consumer);
 		
+
 		while (true) {
 			
 			// delivery message
@@ -48,12 +67,20 @@ public class ImageJoinUtil {
 			try {
 				delivery = consumer.nextDelivery();
 			} catch (Exception e) {
-				log.error("delivery error!\t" + e.getMessage());
+				log.error("delivery error!\t" + e.getMessage(), e);
+				
+				errorTime++;
+				if(errorTime <= 10)
+					Thread.currentThread().sleep(WAIT_SHORT);
+				else
+					Thread.currentThread().sleep(WAIT_LONG);
 			}
 			
 			if(null == delivery){
-				continue;
+				return;
 			}
+			
+			errorTime = 0;
 			
 			String message = new String(delivery.getBody(), "UTF-8");
 			joinImage(message);
