@@ -37,7 +37,9 @@ public class MqReceiver {
 		Connection connection = factory.newConnection();
 		Channel channel = connection.createChannel();
 
-		channel.queueDeclare(mqQueue, false, false, false, null);
+		//durable true
+		boolean durable = true;
+		channel.queueDeclare(mqQueue, durable, false, false, null);
 		log.info(" [*] Waiting for messages. To exit press CTRL+C");
 
 		QueueingConsumer consumer = new QueueingConsumer(channel);
