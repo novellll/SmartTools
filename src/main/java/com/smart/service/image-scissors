@@ -13,12 +13,12 @@ JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.19.x86_64/
  
 JVM=server
 JAVA_MAIN_CLASS=com.smart.service.ImageService
-JAVA_STDOUT=/var/log/java_image_server.log
-JAVA_STDERR=/var/log/java_image_server.err
+JAVA_STDOUT=/var/log/java_image_scissors.log
+JAVA_STDERR=/var/log/java_image_scissors.err
  
-prog=java_image_server
-pidfile=${PIDFILE-/var/run/java_image_server.pid}
-lockfile=${LOCKFILE-/var/lock/subsys/java_image_server}
+prog=java_image_scissors
+pidfile=${PIDFILE-/var/run/java_image_scissors.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/java_image_scissors}
 JSVC=/usr/bin/jsvc
 RETVAL=0
  

@@ -162,7 +162,7 @@ public class Updater {
 		thumb.put("middle", middlePhotoId);
 		thumb.put("small", smallPhotoId);
 
-        user.put("thumb", thumb);
+        user.put("photo", thumb);
         
         WriteResult res = users.update(query, user);
         log.debug("result: " + res.toString());
