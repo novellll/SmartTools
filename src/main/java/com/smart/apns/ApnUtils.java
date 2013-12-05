@@ -2,13 +2,11 @@ package com.smart.apns;
 
 import java.io.InputStream;
 
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
 
 import com.notnoop.apns.APNS;
 import com.notnoop.apns.ApnsService;
 import com.smart.Configuration;
-import com.smart.mongo.ModApn;
 import com.smart.mongo.ModDevice;
 
 public class ApnUtils {

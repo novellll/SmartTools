@@ -23,11 +23,11 @@ public class ModDevice {
 		System.out.println(dbPort);
 		this.m = new MongoClient( dbHost , dbPort );
 		this.db = m.getDB( code );
-		this.coll = db.getCollection("devices");
+		this.coll = db.getCollection("apns");
 	}
 	public List<String> getToken(String uid) {
 		
-		BasicDBObject query = new BasicDBObject("deviceuid", uid);
+		BasicDBObject query = new BasicDBObject("deviceowner", uid);
 		
 		DBCursor cursor = coll.find(query);
 		List<String> result = new ArrayList<String>();

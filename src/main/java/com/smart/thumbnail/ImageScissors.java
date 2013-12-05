@@ -26,7 +26,7 @@ public class ImageScissors {
 		Configuration.conf = new PropertiesConfiguration("server.properties");
 		
 		String mqHost = Configuration.conf.getString("rabbit_host");
-		String mqQueue = Configuration.conf.getString("rabbit_queue_thumb");
+		String mqQueue = Configuration.conf.getString("rabbit_queue_scissors");
 
 		ConnectionFactory factory = new ConnectionFactory();
 		factory.setHost(mqHost);
@@ -34,7 +34,9 @@ public class ImageScissors {
 		Connection connection = factory.newConnection();
 		Channel channel = connection.createChannel();
 
-		channel.queueDeclare(mqQueue, false, false, false, null);
+		//durable true
+		boolean durable = true;
+		channel.queueDeclare(mqQueue, durable, false, false, null);
 		log.info(" [*] Waiting for messages. To exit press CTRL+C");
 
 		QueueingConsumer consumer = new QueueingConsumer(channel);
