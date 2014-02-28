@@ -31,6 +31,12 @@ public class DBOperator {
 		file.writeTo(new File(tmpFile));
 	}
 	
+	public GridFSDBFile getInfo(String fid)throws Exception{
+		GridFSDBFile file = fs.find(new ObjectId(fid));
+		return file;
+	}
+
+	
 	public String savePhoto(File f) throws Exception{
 		GridFSInputFile inputFile = fs.createFile(f);
 		inputFile.save();

@@ -17,16 +17,20 @@ import com.mongodb.WriteResult;
 import com.mongodb.util.JSON;
 import com.smart.Configuration;
 
+import com.mongodb.gridfs.GridFSDBFile;
+
 public class Updater {
 
 	private static final Logger log = Logger.getLogger(Updater.class);
-	
+	//更新素材内容，thumb字段，现在要添加到扩展字段里，这个方法可能要调用三次？还是调用一次
 	public void updateMsgThumb(String code, String messageId ,String fileId,int height,int width,String collection) throws Exception{
 		DBOperator dbop = new DBOperator(code);
 		log.debug("connect to mongodb successfully.");
+		
 		DBCollection messages = dbop.getDB().getCollection(collection);
 		BasicDBObject query = new BasicDBObject("_id", new ObjectId(messageId));
 		log.debug("query: " + query.toString());
+		
 		BasicDBObject message = (BasicDBObject) messages.findOne(query);
 		BasicDBObject thumb = new BasicDBObject();
 		thumb.put("fileid", fileId);
@@ -35,6 +39,7 @@ public class Updater {
 		message.put("thumb", thumb);
 		WriteResult res = messages.update(query, message);
         log.debug("result: " + res.toString());
+        
         dbop.DBClose();
 	}
 	
@@ -129,25 +134,67 @@ public class Updater {
         m.close();
 	}
 	
+	//for YUKARi 把图片信息加一个适合YUKARi的外套
+	//把gridfs里的图片信息提取出来，按照smartcore的形式存入到files里,并返回新的fid
+	//2014.1.20，吴擒龙
+	private String translateFileId(DBOperator dbop, String gridId) throws Exception{
+		
+		DBCollection YUKARiFiles = dbop.getDB().getCollection("files");
+		
+		//get information of the big picture
+		GridFSDBFile smartFile = dbop.getInfo(gridId);
+		
+		//create file like smartcore into files from the information of big photo
+		BasicDBObject newSmartFile = new BasicDBObject(); 
+		
+		//add information into smartfile from the big photo inserted in to gridfs
+		newSmartFile.put("fileId",smartFile.getId());
+		newSmartFile.put("length",smartFile.getLength());
+		newSmartFile.put("name",smartFile.getFilename());
+		newSmartFile.put("contentType",smartFile.getContentType());
+		newSmartFile.put("valid",1);
+		newSmartFile.put("__v",0);
+		
+		//insert the smartfile into file
+		YUKARiFiles.insert(newSmartFile);
+		
+		//find id of file by fileId
+		BasicDBObject fileId = new BasicDBObject("fileId", smartFile.getId());
+		newSmartFile = (BasicDBObject) YUKARiFiles.findOne(fileId);
+		
+		String newId = newSmartFile.getString("_id");
+		
+		return newId;
+	}
+	
+	
+	
 	//create three kinds of photo and update user's or group's photo property
 	public void updateUserPhoto(String code, String id, String file, String collection) throws Exception{
 		DBOperator dbop = new DBOperator(code);
 		log.debug("connect to mongodb successfully.");
+	
 		
 		File bigFile = new File(file + "big");
 		File middleFile = new File(file + "middle");
 		File smallFile = new File(file + "small");
 		
 		//save big photo to mongo
-		String bigPhotoId = dbop.savePhoto(bigFile);
+		String bigPhotoId = dbop.savePhoto(bigFile);		
+		bigPhotoId = translateFileId(dbop,bigPhotoId);
+		
 		log.debug("save bigFile successfully." + bigPhotoId);
 		
 		//save middle photo to mongo
-		String middlePhotoId = dbop.savePhoto(middleFile);
+		String middlePhotoId = dbop.savePhoto(middleFile);		
+		middlePhotoId = translateFileId(dbop,middlePhotoId);
+		
 		log.debug("save middleFile successfully." + middlePhotoId);
 		
 		//save small photo to mongo
-		String smallPhotoId = dbop.savePhoto(smallFile);
+		String smallPhotoId = dbop.savePhoto(smallFile);	
+		smallPhotoId = translateFileId(dbop,smallPhotoId);
+		
 		log.debug("save smallFile successfully." + smallPhotoId);
 		
 		//query user
@@ -161,8 +208,12 @@ public class Updater {
 		thumb.put("big", bigPhotoId);
 		thumb.put("middle", middlePhotoId);
 		thumb.put("small", smallPhotoId);
-
-        user.put("photo", thumb);
+		
+		BasicDBObject extend = (BasicDBObject) user.get("extend");
+		
+		extend.put("thumb",thumb);
+		
+        user.put("extend", extend);
         
         WriteResult res = users.update(query, user);
         log.debug("result: " + res.toString());
@@ -187,11 +238,13 @@ public class Updater {
 		
 		DBOperator dbop = new DBOperator(code);
 		log.debug("connect to mongodb successfully.");
-
+		
+		//save big picture into fs.file
 		// save big photo to mongo
 		String imageId = dbop.savePhoto(new File(file));
 		log.debug("save bigFile successfully.");
-
+		
+		
 		// query update data
 		DBCollection rows = dbop.getDB().getCollection(collection);
 		BasicDBObject query = new BasicDBObject("_id", new ObjectId(id));
@@ -199,7 +252,7 @@ public class Updater {
 		log.debug("find " + collection + " and id = " + row.getString("_id"));
 		
 		// update image
-		setNestDBObject(row, key, imageId);
+		setNestDBObject(row, key, translateFileId(dbop,imageId));
 		WriteResult res = rows.update(query, row);
 		log.debug("result: " + res.toString());
 
